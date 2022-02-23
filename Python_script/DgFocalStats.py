@@ -44,7 +44,6 @@ def focal_elev_stats_df(dataframe,rings=1):
 input_csv_path = 'Result/{}_elev_{}.csv'.format(area,dggs_res)
 elev_df = pandas.read_csv(input_csv_path, sep=',')
 elev_df = elev_df.set_index(['i', 'j'])
-elev_df_copy = elev_df.copy()
 
 # record timing -- start
 start_time = time.time()
@@ -52,8 +51,7 @@ start_time = time.time()
 # call the function by parallel processing
 # need to initialize columns with python 3.7 on linux
 n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
-elev_df_copy['mean'] = elev_df_copy['max'] = elev_df_copy['min'] = elev_df_copy['median'] = elev_df_copy['std'] = elev_df_copy['range'] = numpy.nan
-elev_df_split = numpy.array_split(elev_df_copy, n_cores)
+elev_df_split = numpy.array_split(elev_df, n_cores)
 pool = mp.Pool(processes = n_cores)
 elev_df_output = pandas.concat(pool.starmap(focal_elev_stats_df, product(elev_df_split,[ring_n]*len(elev_df_split))))
 pool.close()
