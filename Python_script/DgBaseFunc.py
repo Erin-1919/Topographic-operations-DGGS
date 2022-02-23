@@ -49,14 +49,6 @@ def edge_cell(res,coords,allcell):
     neighbor_filt = list(filter(lambda x: x is True,neighbor_in))
     return len(neighbor_filt) != 6
     
-def edge_cell_df(df,res,allcell):
-    ls = []
-    for ij in df.index.values:
-        if edge_cell(res,ij,allcell):
-            ls.append(ij)
-    df_out = df[df.index.isin(ls)]
-    return df_out
-
 def edge_cell_chain(res,coords,allcell):
     chain = [coords]
     nxt = numpy.nan
@@ -114,44 +106,6 @@ def edge_navig_by_rings(res,coords,rings=1):
         coords_neighbor = list(set(coords_neighbor))
         coords_edge = [x for x in coords_neighbor if x not in coords_neighbor_]
     return coords_edge
-
-def hex_dist(coord1,coord2,res):
-    ''' calculate hex distance represented by ring number '''
-    i_ = coord1[0] - coord2[0]
-    j_ = coord1[1] - coord2[1]
-    if i_ * j_ >= 0:
-        ring = max(abs(i_),abs(j_))
-    else:
-        ring = abs(i_) + abs(j_)
-    if res%2 == 1:
-        # ring = math.ceil(ring/2)
-        ring = round(ring/numpy.sqrt(3))
-    return ring
-
-def hex_dist_l(coord,coords_target,res):
-    ''' calculate hex distance from one coord to a list of target coords (if there are a few), 
-    represented by ring number '''
-    dist_ls = [hex_dist(coord,coord_,res) for coord_ in coords_target]
-    min_dist = min(dist_ls)
-    return min_dist
-
-def hex_dist_m(coord,coords_target,res,thred=30):
-    ''' calculate hex distance from one coord to a list of target coords (if there are a lot), 
-    represented by ring number '''
-    i = 0
-    coords_edge = [coord]
-    coords_neighbor = [coord]
-    while not common_member(coords_target, coords_edge):
-        i += 1
-        coords_neighbor_ = coords_neighbor
-        for c in coords_edge:
-            coords_neighbor = coords_neighbor + neighbor_coords(res,c)[1:]
-        coords_neighbor = list(set(coords_neighbor))
-        coords_edge = [x for x in coords_neighbor if x not in coords_neighbor_]
-        if i > thred:
-            i = numpy.nan
-            break
-    return i
 
 def neighbor_navig(res,coords,df):
     ''' extract elevation values among the neighborhood -- 1 center + 6 neighbors '''
@@ -289,14 +243,6 @@ def second_derivative(res,elev_neighbor):
         d_zx2 = d_zj2 * math.cos(math.pi/6) + d_zk2 * math.cos(math.pi/6)
         d_zy2 = d_zi2 + d_zj2 * math.sin(math.pi/6) - d_zk2 * math.sin(math.pi/6)
     return d_zx2, d_zy2
-
-def hex_dist_comb_df(dataframe,coords_target,var,res):
-    dataframe[var] = numpy.nan
-    dataframe[var] = [hex_dist_m(coord,coords_target,res) for coord in dataframe.index.values]
-    coords_left = dataframe[numpy.isnan(dataframe[var])].index.values.tolist()
-    dist_left = [hex_dist_l(coord,coords_target,res) for coord in coords_left]
-    for c,d in zip(coords_left,dist_left):
-        dataframe.loc[c,var] = d
         
 if __name__=='__main__':
     pass
