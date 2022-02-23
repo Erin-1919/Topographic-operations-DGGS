@@ -220,7 +220,6 @@ def hillshade(coords,df,res,altitude=45,azimuth=315):
 
 def slope_aspect_df(dataframe,elev_df,method,res,cell_spacing):
     ''' calculate slope and aspect by specified method '''
-    dataframe['gradient_deg'] = dataframe['aspect_deg'] = np.nan
     if method == 'MAG':
         dataframe[['gradient_deg','aspect_deg']] = [slope_MAG(ij,elev_df,res,cell_spacing) for ij in dataframe.index.values]
     elif method == 'MDG':
@@ -234,12 +233,10 @@ def slope_aspect_df(dataframe,elev_df,method,res,cell_spacing):
     return dataframe
 
 def curvature_df(dataframe,elev_df,res,cell_spacing):
-    dataframe['curv'] = np.nan
     dataframe['curv'] = [curvature(ij,elev_df,res,cell_spacing) for ij in dataframe.index.values]
     return dataframe
 
 def hillshade_df(dataframe,elev_df,res):
-    dataframe['hs'] = np.nan
     dataframe['hs'] = [hillshade(ij,res,elev_df) for ij in dataframe.index.values]
     return dataframe
 
