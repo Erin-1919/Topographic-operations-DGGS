@@ -35,27 +35,10 @@ def TPI_calcu(coords,res=dggs_res):
         TPI_ls = elev_neighbor[1:]
         TPI_value = elev_neighbor[0] - (sum(TPI_ls) / len(TPI_ls))
     return TPI_value
-    
-def TWI_calcu(alpha,beta):
-    ''' Topographic wetness index (TWI) '''
-    if beta == 0:
-        TWI_value = numpy.nan
-    else:
-        beta_rad = math.radians(beta)
-        TWI_value = math.log(alpha/math.tan(beta_rad))
-    return TWI_value
-    
-def SPI_calcu(alpha,beta):
-    ''' Stream power index (SPI) '''
-    beta_rad = math.radians(beta)
-    SPI_value = alpha * math.tan(beta_rad)
-    return SPI_value
 
 def TopoIndex_df(dataframe):
     dataframe['TRI'] = [TRI_calcu(ij) for ij in dataframe.index.values]
     dataframe['TPI'] = [TPI_calcu(ij) for ij in dataframe.index.values]
-    dataframe['TWI'] = [TWI_calcu(a,b) for a,b in zip(dataframe['contri_area'],dataframe['gradient_deg'])]
-    dataframe['SPI'] = [SPI_calcu(a,b) for a,b in zip(dataframe['contri_area'],dataframe['gradient_deg'])]
     return dataframe
 
 #############################################################################
@@ -73,8 +56,6 @@ elev_df = elev_df.set_index(['i', 'j'])
 
 # record timing -- start
 start_time = time.time()
-
-elev_df['TRI'] = elev_df['TPI'] = elev_df['TWI'] = elev_df['SPI'] = numpy.nan
 
 # call the function by parallel processing
 n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
