@@ -15,13 +15,6 @@ look_up = DgBaseFunc.look_up_table()
 dggs_cellsize = look_up.loc[dggs_res,'cell_size']
 vertical_res = look_up.loc[dggs_res,'verti_res']
 
-## read the csv into a dataframe
-input_csv_path = 'Result/Area_{}_centroids_{}.csv'.format(area,dggs_res)
-centroid_df = pandas.read_csv(input_csv_path, sep=',')
-
-## Read DEMs -- CDEM 
-CDEM_TIF = rasterio.open('Data/{}.tif'.format(area))
-
 ## Define the main funcitons    
 def find_neighbor(x,y,DEM_TIF):
     ''' 
@@ -77,24 +70,32 @@ def dggs_elevation_df(dataframe):
     dataframe = dataframe.drop(columns=['lon_c','lat_c'])
     return dataframe
 
-# record timing -- start
-start_time = time.time()
+if __name__=='__main__':
+    
+    input_csv_path = 'Result/Area_{}_centroids_{}.csv'.format(area,dggs_res)
+    centroid_df = pandas.read_csv(input_csv_path, sep=',')
 
-# call the function by parallel processing
-n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
-centroid_df_split = numpy.array_split(centroid_df, n_cores)
-pool = mp.Pool(processes = n_cores)
-centroid_df_output = pandas.concat(pool.map(dggs_elevation_df, centroid_df_split))
-pool.close()
-pool.join()
+    ## Read DEMs -- CDEM 
+    CDEM_TIF = rasterio.open('Data/{}.tif'.format(area))
 
-# non-parallel
-# centroid_df_output = dggs_elevation_df(centroid_df)
+    # record timing -- start
+    start_time = time.time()
 
-# record timing -- end
-print (dggs_res)
-print ("Processing time: %s seconds" % (time.time() - start_time))
+    # call the function by parallel processing
+    n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
+    centroid_df_split = numpy.array_split(centroid_df, n_cores)
+    pool = mp.Pool(processes = n_cores)
+    centroid_df_output = pandas.concat(pool.map(dggs_elevation_df, centroid_df_split))
+    pool.close()
+    pool.join()
 
-# save the results as csv
-output_csv_path = 'Result/{}_elev_{}.csv'.format(area,dggs_res)
-centroid_df_output.to_csv(output_csv_path, index=False)
+    # non-parallel
+    # centroid_df_output = dggs_elevation_df(centroid_df)
+
+    # record timing -- end
+    print (dggs_res)
+    print ("Processing time: %s seconds" % (time.time() - start_time))
+
+    # save the results as csv
+    output_csv_path = 'Result/{}_elev_{}.csv'.format(area,dggs_res)
+    centroid_df_output.to_csv(output_csv_path, index=False)
