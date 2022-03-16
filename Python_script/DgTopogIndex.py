@@ -41,34 +41,32 @@ def TopoIndex_df(dataframe):
     dataframe['TPI'] = [TPI_calcu(ij) for ij in dataframe.index.values]
     return dataframe
 
-#############################################################################
-
-print (dggs_res)
-print (area)
-print (method)
-
-## read the csv into a dataframe
-input_csv_path = 'Result/{}_flow_{}_{}.csv'.format(area,method,dggs_res)
-elev_df = pandas.read_csv(input_csv_path, sep=',')
-elev_df = elev_df.set_index(['i', 'j'])
-
 ## call fuctions in parallel computing mode and record timing
+if __name__=='__main__':
 
-# record timing -- start
-start_time = time.time()
+    print (dggs_res)
+    print (area)
+    print (method)
+    
+    input_csv_path = 'Result/{}_flow_{}_{}.csv'.format(area,method,dggs_res)
+    elev_df = pandas.read_csv(input_csv_path, sep=',')
+    elev_df = elev_df.set_index(['i', 'j'])
 
-# call the function by parallel processing
-n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
-elev_df_split = numpy.array_split(elev_df, n_cores)
-pool = mp.Pool(processes = n_cores)
-elev_df_output = pandas.concat(pool.map(TopoIndex_df, elev_df_split))
-pool.close()
-pool.join()
+    # record timing -- start
+    start_time = time.time()
 
-# record timing -- end
-print ("Processing time: %s seconds" % (time.time() - start_time))
+    # call the function by parallel processing
+    n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
+    elev_df_split = numpy.array_split(elev_df, n_cores)
+    pool = mp.Pool(processes = n_cores)
+    elev_df_output = pandas.concat(pool.map(TopoIndex_df, elev_df_split))
+    pool.close()
+    pool.join()
 
-# save the results as csv
-output_csv_path = 'Result/{}_TopoIndex_{}_{}.csv'.format(area,method,dggs_res)
-elev_df_output.to_csv(output_csv_path, index=True)
+    # record timing -- end
+    print ("Processing time: %s seconds" % (time.time() - start_time))
+
+    # save the results as csv
+    output_csv_path = 'Result/{}_TopoIndex_{}_{}.csv'.format(area,method,dggs_res)
+    elev_df_output.to_csv(output_csv_path, index=True)
 
