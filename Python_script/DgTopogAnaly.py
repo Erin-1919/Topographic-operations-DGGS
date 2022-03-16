@@ -241,84 +241,84 @@ def hillshade_df(dataframe,elev_df,res):
     return dataframe
 
 ## call fuctions in parallel computing mode and record timing
+if __name__=='__main__':
+    
+    input_csv_path = 'Result/{}_elev_{}.csv'.format(area,dggs_res)
+    elev_df = pandas.read_csv(input_csv_path, sep=',')
+    elev_df = elev_df.set_index(['i', 'j'])
 
-## read the csv into a dataframe
-input_csv_path = 'Result/{}_elev_{}.csv'.format(area,dggs_res)
-elev_df = pandas.read_csv(input_csv_path, sep=',')
-elev_df = elev_df.set_index(['i', 'j'])
+    ############################################################
 
-############################################################
+    # record timing -- start
+    start_time = time.time()
 
-# record timing -- start
-start_time = time.time()
+    elev_df_copy = elev_df.copy()
 
-elev_df_copy = elev_df.copy()
+    # call the function by parallel processing
+    slope_aspect_df_p = functools.partial(slope_aspect_df,elev_df=elev_df,method=method,res=dggs_res,cell_spacing=cell_spacing)
 
-# call the function by parallel processing
-slope_aspect_df_p = functools.partial(slope_aspect_df,elev_df=elev_df,method=method,res=dggs_res,cell_spacing=cell_spacing)
+    n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
+    elev_df_split = np.array_split(elev_df_copy, n_cores)
+    pool = mp.Pool(processes = n_cores)
+    elev_df_output = pandas.concat(pool.map(slope_aspect_df_p, elev_df_split))
+    pool.close()
+    pool.join()
 
-n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
-elev_df_split = np.array_split(elev_df_copy, n_cores)
-pool = mp.Pool(processes = n_cores)
-elev_df_output = pandas.concat(pool.map(slope_aspect_df_p, elev_df_split))
-pool.close()
-pool.join()
+    # record timing -- end
+    print (dggs_res)
+    print (method)
+    print ("Processing time: %s seconds" % (time.time() - start_time))
 
-# record timing -- end
-print (dggs_res)
-print (method)
-print ("Processing time: %s seconds" % (time.time() - start_time))
+    # save the results as csv
+    output_csv_path = 'Result/{}_elev_{}_{}.csv'.format(area,method,dggs_res)
+    elev_df_output.to_csv(output_csv_path, index=True)
 
-# save the results as csv
-output_csv_path = 'Result/{}_elev_{}_{}.csv'.format(area,method,dggs_res)
-elev_df_output.to_csv(output_csv_path, index=True)
+    ############################################################
+    ## curvature
+    # record timing -- start
+    start_time = time.time()
 
-############################################################
-## curvature
-# record timing -- start
-start_time = time.time()
+    elev_df_copy = elev_df.copy()
 
-elev_df_copy = elev_df.copy()
+    # call the function by parallel processing
+    curvature_df_p = functools.partial(curvature_df,elev_df=elev_df,res=dggs_res,cell_spacing=cell_spacing)
 
-# call the function by parallel processing
-curvature_df_p = functools.partial(curvature_df,elev_df=elev_df,res=dggs_res,cell_spacing=cell_spacing)
+    n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
+    elev_df_split = np.array_split(elev_df_copy, n_cores)
+    pool = mp.Pool(processes = n_cores)
+    elev_df_output = pandas.concat(pool.map(curvature_df_p, elev_df_split))
+    pool.close()
+    pool.join()
 
-n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
-elev_df_split = np.array_split(elev_df_copy, n_cores)
-pool = mp.Pool(processes = n_cores)
-elev_df_output = pandas.concat(pool.map(curvature_df_p, elev_df_split))
-pool.close()
-pool.join()
+    # record timing -- end
+    print (dggs_res)
+    print ("Processing time: %s seconds" % (time.time() - start_time))
 
-# record timing -- end
-print (dggs_res)
-print ("Processing time: %s seconds" % (time.time() - start_time))
+    # save the results as csv
+    output_csv_path = 'Result/{}_curvature_{}.csv'.format(area,dggs_res)
+    elev_df_output.to_csv(output_csv_path, index=True)
 
-# save the results as csv
-output_csv_path = 'Result/{}_curvature_{}.csv'.format(area,dggs_res)
-elev_df_output.to_csv(output_csv_path, index=True)
+    ############################################################
+    ## hillshade
+    # record timing -- start
+    start_time = time.time()
 
-############################################################
-## hillshade
-# record timing -- start
-start_time = time.time()
+    elev_df_copy = elev_df.copy()
 
-elev_df_copy = elev_df.copy()
+    # call the function by parallel processing
+    hillshade_df_p = functools.partial(hillshade_df,elev_df=elev_df,res=dggs_res)
 
-# call the function by parallel processing
-hillshade_df_p = functools.partial(hillshade_df,elev_df=elev_df,res=dggs_res)
+    n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
+    elev_df_split = np.array_split(elev_df_copy, n_cores)
+    pool = mp.Pool(processes = n_cores)
+    elev_df_output = pandas.concat(pool.map(hillshade_df_p, elev_df_split))
+    pool.close()
+    pool.join()
 
-n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
-elev_df_split = np.array_split(elev_df_copy, n_cores)
-pool = mp.Pool(processes = n_cores)
-elev_df_output = pandas.concat(pool.map(hillshade_df_p, elev_df_split))
-pool.close()
-pool.join()
+    # record timing -- end
+    print (dggs_res)
+    print ("Processing time: %s seconds" % (time.time() - start_time))
 
-# record timing -- end
-print (dggs_res)
-print ("Processing time: %s seconds" % (time.time() - start_time))
-
-# save the results as csv
-output_csv_path = 'Result/{}_hillshade_{}.csv'.format(area,dggs_res)
-elev_df_output.to_csv(output_csv_path, index=True)
+    # save the results as csv
+    output_csv_path = 'Result/{}_hillshade_{}.csv'.format(area,dggs_res)
+    elev_df_output.to_csv(output_csv_path, index=True)
