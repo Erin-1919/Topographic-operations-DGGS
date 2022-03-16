@@ -40,27 +40,29 @@ def focal_elev_stats_df(dataframe,rings=1):
     dataframe[['mean','max','min','median','std','range']] = [focal_elev_stats(ij,elev_df,rings) for ij in dataframe.index.values]
     return dataframe
 
-## read the csv into a dataframe
-input_csv_path = 'Result/{}_elev_{}.csv'.format(area,dggs_res)
-elev_df = pandas.read_csv(input_csv_path, sep=',')
-elev_df = elev_df.set_index(['i', 'j'])
+if __name__=='__main__':
+    
+    ## read the csv into a dataframe
+    input_csv_path = 'Result/{}_elev_{}.csv'.format(area,dggs_res)
+    elev_df = pandas.read_csv(input_csv_path, sep=',')
+    elev_df = elev_df.set_index(['i', 'j'])
 
-# record timing -- start
-start_time = time.time()
+    # record timing -- start
+    start_time = time.time()
 
-# call the function by parallel processing
-# need to initialize columns with python 3.7 on linux
-n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
-elev_df_split = numpy.array_split(elev_df, n_cores)
-pool = mp.Pool(processes = n_cores)
-elev_df_output = pandas.concat(pool.starmap(focal_elev_stats_df, product(elev_df_split,[ring_n]*len(elev_df_split))))
-pool.close()
-pool.join()
+    # call the function by parallel processing
+    # need to initialize columns with python 3.7 on linux
+    n_cores = int(os.environ.get('SLURM_CPUS_PER_TASK',default=1))
+    elev_df_split = numpy.array_split(elev_df, n_cores)
+    pool = mp.Pool(processes = n_cores)
+    elev_df_output = pandas.concat(pool.starmap(focal_elev_stats_df, product(elev_df_split,[ring_n]*len(elev_df_split))))
+    pool.close()
+    pool.join()
 
-# record timing -- end
-print (dggs_res)
-print ("Processing time: %s seconds" % (time.time() - start_time))
+    # record timing -- end
+    print (dggs_res)
+    print ("Processing time: %s seconds" % (time.time() - start_time))
 
-# save the results as csv
-output_csv_path = 'Result/{}_elev_focal_{}_ring{}.csv'.format(area,dggs_res,ring_n)
-elev_df_output.to_csv(output_csv_path, index=True)
+    # save the results as csv
+    output_csv_path = 'Result/{}_elev_focal_{}_ring{}.csv'.format(area,dggs_res,ring_n)
+    elev_df_output.to_csv(output_csv_path, index=True)
