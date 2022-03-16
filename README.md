@@ -31,7 +31,6 @@ https://github.com/Erin-1919/Topographic-operations-DGGS
  - numpy
  - math
  - scipy
- - warnings
  - rasterio
  - gdal
  - pandas
