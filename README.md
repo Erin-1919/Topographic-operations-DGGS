@@ -10,7 +10,7 @@ Multi-resolution topographic analysis in hexagonal Discrete Global Grid Systems
 Discrete Global Grid Systems; topographical analysis; multi-resolution; map algebra
 
 ### DOI
-todo
+10.1016/j.jag.2022.102985
 
 ### Authors
 Mingke Li, Heather McGrath, and Emmanuel Stefanakis
